@@ -8,6 +8,7 @@ const api = AuthAPI.getInstance();
 interface AuthSlice {
   authUser: AuthUser | null;
   status: string;
+  signupStatus: boolean;
 }
 
 // signup thunk is not returning anything,
@@ -49,6 +50,7 @@ const initialState: AuthSlice = {
     refreshToken: "",
   },
   status: "",
+  signupStatus: false,
 };
 
 export const LOCAL_STORAGE_AUTH_TOKEN = "biostate-tokens";
@@ -83,6 +85,9 @@ const slice = createSlice({
         state.status = "fulfilled";
       }
     },
+    resetSignupStatus(state, action: PayloadAction<{ flag: boolean }>) {
+      state.signupStatus = false;
+    },
   },
   extraReducers: (builder) => {
     builder.addCase(lognInThunk.fulfilled, (state, action) => {
@@ -90,8 +95,17 @@ const slice = createSlice({
       state.authUser = action.payload.authUser;
       state.status = "fulfilled";
     });
+    builder.addCase(signUpThunk.pending, (state) => {
+      state.signupStatus = false;
+    });
+    builder.addCase(signUpThunk.rejected, (state) => {
+      state.signupStatus = false;
+    });
+    builder.addCase(signUpThunk.fulfilled, (state) => {
+      state.signupStatus = true;
+    });
   },
 });
 
-export const { setTokens } = slice.actions;
+export const { setTokens, resetSignupStatus } = slice.actions;
 export default slice.reducer;

@@ -1,17 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Routes } from "../router/routes";
+import { useDispatch } from "react-redux";
+import { AppDispatch, useSelector } from "../store/store";
+import { resetSignupStatus, signUpThunk } from "../store/auth/slice";
+import { useNavigate } from "react-router-dom";
 
 const SignUpPage = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState("user"); // Default role is 'user'
   const [errors, setErrors] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
+  const [loading, setLoading] = useState(false); // Loading state
+  const [successMessage, setSuccessMessage] = useState(""); // Success message state
+
+  const dispatch = useDispatch<AppDispatch>();
+  const { signupStatus } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    if (signupStatus) {
+      setLoading(false);
+      setSuccessMessage("Signup successful! You can now sign in.");
+      dispatch(resetSignupStatus({ flag: false }));
+    }
+  }, [dispatch, signupStatus]);
 
   const handleSignUp = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -53,13 +71,14 @@ const SignUpPage = () => {
     setErrors(newErrors);
 
     if (!hasError) {
-      // Submit logic here
-      console.log("Signing up with:", { name, email, password });
+      setLoading(true); // Start loading spinner
+      dispatch(signUpThunk({ name, email, password, role }));
+      console.log("Signing up with:", { name, email, password, role });
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen ">
+    <div className="flex flex-col items-center justify-center h-screen">
       <form
         onSubmit={handleSignUp}
         className="w-full max-w-lg p-8 bg-white/90 shadow-lg rounded-2xl backdrop-blur-md transform transition-all duration-300 hover:scale-105"
@@ -134,13 +153,53 @@ const SignUpPage = () => {
           )}
         </div>
 
+        {/* Role Selection */}
+        <div className="mb-6">
+          <label className="mr-4">Role</label>
+          <label>
+            <input
+              type="radio"
+              name="role"
+              value="user"
+              checked={role === "user"}
+              onChange={() => setRole("user")}
+              className="mr-2"
+            />
+            User
+          </label>
+          <label className="ml-4">
+            <input
+              type="radio"
+              name="role"
+              value="admin"
+              checked={role === "admin"}
+              onChange={() => setRole("admin")}
+              className="mr-2"
+            />
+            Admin
+          </label>
+        </div>
+
         {/* Submit Button */}
         <button
           type="submit"
           className="w-full py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-all duration-200 focus:ring-2 focus:ring-indigo-400"
         >
-          Sign Up
+          {loading ? (
+            <div className="flex justify-center">
+              <div className="w-5 h-5 border-4 border-t-4 border-indigo-600 rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            "Sign Up"
+          )}
         </button>
+
+        {/* Success message */}
+        {successMessage && (
+          <div className="mt-4 text-green-500 text-center">
+            {successMessage}
+          </div>
+        )}
 
         <div className="mt-4 text-center">
           <p className="text-sm text-indigo-600">

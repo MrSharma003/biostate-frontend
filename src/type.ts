@@ -2,6 +2,7 @@ export interface UserSignupPayload {
   name: string;
   email: string;
   password: string;
+  role: string;
 }
 
 export interface UserLoginPayload {
@@ -25,4 +26,3 @@ export type StringHistory = {
   longestSubstring: string;
   uniqueSubstrings: string[];
 };
-
